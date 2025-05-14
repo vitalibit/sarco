@@ -1,11 +1,21 @@
 .PHONY: build run test clean lint  dev  test-unit test-verbose test-coverage
 
+# VERSION := $(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)
+# APP=$(shell basename $(shell git remote get-url origin) | sed 's/\.git$$//')
+REGISTRY=ghcr.io/sarco3t
+TARGETOS?=linux
+TARGETARCH?=amd64
+OUT = $(BUILD_DIR)/$(APP_NAME)$(if $(filter windows,$(TARGETOS)),.$('exe'))
+VERSION?=1
+APP?=kbot
+
 # Include .env file if it exists (improved handling for comments)
 ifneq (,$(wildcard .env))
 include .env
 endif
 
 # Build and run settings
+
 APP_NAME=kbot
 CMD_PATH=./cmd/
 BUILD_DIR=./build
@@ -18,17 +28,19 @@ TEST_PACKAGES?=./...
 COVERAGE_FILE=coverage.out
 
 
-build:
-	@echo "Building $(APP_NAME)..."
+build:	get
 	@mkdir -p $(BUILD_DIR)
-	@go build -o $(BUILD_DIR)/$(APP_NAME) .
-	@chmod +x $(BUILD_DIR)/$(APP_NAME)
-	@echo "Build completed: $(BUILD_DIR)/$(APP_NAME)"
+	@CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+	go build \
+	  -o ${OUT} -ldflags "-X="github.com/sarco3t/kbot/cmd.appVersion=${VERSION}
+	@chmod +x ${OUT}
+	@echo "Build completed: ${OUT}"
 
 run: build
 	@echo "Running $(APP_NAME)..."
-	TELE_TOKEN=$(TELE_TOKEN) $(BUILD_DIR)/$(APP_NAME) $(ARGS)
-
+	TELE_TOKEN=$(TELE_TOKEN) ${OUT} $(ARGS)
+get:
+	@go get
 test: test-deps
 	@echo "Running tests..."
 	@go test -race $(TEST_PACKAGES)
@@ -56,7 +68,9 @@ lint:
 	@echo "Running linter..."
 	@golangci-lint run
 
-
+clean:
+	rm -rf $(BUILD_DIR)
+	@docker rmi -f $(REGISTRY)/$(APP):$(VERSION) || true
 setup: 
 	@if [ -f .env ]; then \
 		echo "A .env file already exists."; \
@@ -74,3 +88,27 @@ setup:
 		echo "Error: .env.example file not found."; \
 		exit 1; \
 	fi
+
+
+image:
+	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION} --load
+push:
+	docker push ${REGISTRY}/${APP}:${VERSION}
+
+windows:
+	TARGETOS=windows TARGETARCH=amd64 make build
+
+windows-arm:
+	TARGETOS=windows TARGETARCH=arm64 make build
+
+linux:
+	TARGETOS=linux TARGETARCH=amd64 make build
+linux-arm:
+	TARGETOS=linux TARGETARCH=arm64 make build
+macos:
+	TARGETOS=darwin TARGETARCH=amd64 make build
+macos-arm:
+	TARGETOS=darwin TARGETARCH=arm64 make build
+
+image-windows-arm:
+	TARGETOS=windows TARGETARCH=arm64 docker build . -t ${REGISTRY}/${APP}:${VERSION}
