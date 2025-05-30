@@ -70,7 +70,7 @@ lint:
 
 clean:
 	rm -rf $(BUILD_DIR)
-	@docker rmi -f $(REGISTRY)/$(APP):$(VERSION) || true
+	@docker rmi -f ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH}  || true
 setup: 
 	@if [ -f .env ]; then \
 		echo "A .env file already exists."; \
@@ -91,10 +91,9 @@ setup:
 
 
 image:
-	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION} --load
+	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH} --load
 push:
-	docker push ${REGISTRY}/${APP}:${VERSION}
-
+	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH}  --push
 windows:
 	TARGETOS=windows TARGETARCH=amd64 make build
 
