@@ -1,6 +1,6 @@
 .PHONY: build run test clean lint  dev  test-unit test-verbose test-coverage
 
-# VERSION := $(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)
+VERSION := $(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)
 # APP=$(shell basename $(shell git remote get-url origin) | sed 's/\.git$$//')
 REGISTRY=ghcr.io/sarco3t
 TARGETOS?=linux
