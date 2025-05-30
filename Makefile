@@ -2,7 +2,7 @@
 
 VERSION := $(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)
 # APP=$(shell basename $(shell git remote get-url origin) | sed 's/\.git$$//')
-REGISTRY=ghcr.io/sarco3t
+REGISTRY=sarco3t
 TARGETOS?=linux
 TARGETARCH?=amd64
 OUT = $(BUILD_DIR)/$(APP_NAME)$(if $(filter windows,$(TARGETOS)),.$('exe'))
@@ -91,10 +91,9 @@ setup:
 
 
 image:
-	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION} --load
+	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETARCH} --load
 push:
-	docker push ${REGISTRY}/${APP}:${VERSION}
-
+	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETARCH} --push
 windows:
 	TARGETOS=windows TARGETARCH=amd64 make build
 
