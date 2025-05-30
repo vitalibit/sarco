@@ -7,14 +7,15 @@ replicaCount: 1
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: sarco3t
+  registry: "ghcr.io"
+  repository: sarco3t/kbot
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: "v0.0.2-7c3e9a8"
   arch: amd64
-
+  os: linux
 secret:
-  name: kbot
-  tokenKey: token
-  tokenName: TELE_TOKEN
+  name: "kbot"
+  env: "TELE_TOKEN"
+  key: "token"

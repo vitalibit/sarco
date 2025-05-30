@@ -2,7 +2,7 @@
 
 VERSION := $(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)
 # APP=$(shell basename $(shell git remote get-url origin) | sed 's/\.git$$//')
-REGISTRY=sarco3t
+REGISTRY=ghcr.io/sarco3t
 TARGETOS?=linux
 TARGETARCH?=amd64
 OUT = $(BUILD_DIR)/$(APP_NAME)$(if $(filter windows,$(TARGETOS)),.$('exe'))
@@ -70,7 +70,7 @@ lint:
 
 clean:
 	rm -rf $(BUILD_DIR)
-	@docker rmi -f $(REGISTRY)/$(APP):$(VERSION) || true
+	@docker rmi -f ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH}  || true
 setup: 
 	@if [ -f .env ]; then \
 		echo "A .env file already exists."; \
@@ -91,9 +91,9 @@ setup:
 
 
 image:
-	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETARCH} --load
+	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH} --load
 push:
-	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETARCH} --push
+	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH}  --push
 windows:
 	TARGETOS=windows TARGETARCH=amd64 make build
 
