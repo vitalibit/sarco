@@ -91,7 +91,7 @@ setup:
 
 
 image:
-	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH} --load
+	docker build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH}
 push:
 	docker buildx build --platform linux/amd64 . -t ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH}  --push
 windows:
